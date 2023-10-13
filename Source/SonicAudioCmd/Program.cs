@@ -9,9 +9,6 @@ namespace SonicAudioCmd
 {
     class Program
     {
-        static string FilePath = string.Empty;
-        static ulong KeyCode = 0;
-
         static void Main(string[] args)
         {
             if (args.Length < 2)
@@ -20,8 +17,8 @@ namespace SonicAudioCmd
                 return;
             }
 
-            FilePath = args[0];
-            KeyCode = ulong.Parse(args[1]);
+            string FilePath = args[0];
+            ulong KeyCode = ulong.Parse(args[1]);
 
             string[] FileList = Directory.GetFiles(FilePath);
             string OutputPath = Path.Combine(FilePath, "StreamTool");
@@ -42,26 +39,24 @@ namespace SonicAudioCmd
                         // Internal ACB
                         if (AcbReader.GetLength("AwbFile") > 0)
                         {
-                            using (SubStream afs2Stream = AcbReader.GetSubStream("AwbFile"))
+                            using (SubStream Afs2Stream = AcbReader.GetSubStream("AwbFile"))
                             {
-                                if (CheckIfAfs2(afs2Stream))
-                                    Afs2Archive.Read(afs2Stream);
+                                if (CheckIfAfs2(Afs2Stream))
+                                    Afs2Archive.Read(Afs2Stream);
                             }
-
-                            AwbHash = Afs2Archive.SubKey;
                         }
 
                         // External ACB
-                        if (AcbReader.GetLength("StreamAwbAfs2Header") > 0)
+                        else if (AcbReader.GetLength("StreamAwbAfs2Header") > 0)
                         {
-                            using (SubStream extAfs2Stream = AcbReader.GetSubStream("StreamAwbAfs2Header"))
+                            using (SubStream ExtAfs2Stream = AcbReader.GetSubStream("StreamAwbAfs2Header"))
                             {
-                                bool utfMode = DataStream.ReadCString(extAfs2Stream, 4) == "@UTF";
-                                extAfs2Stream.Seek(0, SeekOrigin.Begin);
+                                bool utfMode = DataStream.ReadCString(ExtAfs2Stream, 4) == "@UTF";
+                                ExtAfs2Stream.Seek(0, SeekOrigin.Begin);
 
                                 if (utfMode)
                                 {
-                                    using (CriTableReader utfAfs2HeaderReader = CriTableReader.Create(extAfs2Stream))
+                                    using (CriTableReader utfAfs2HeaderReader = CriTableReader.Create(ExtAfs2Stream))
                                     {
                                         utfAfs2HeaderReader.Read();
 
@@ -73,12 +68,13 @@ namespace SonicAudioCmd
                                 }
                                 else
                                 {
-                                    Afs2Archive.Read(extAfs2Stream);
+                                    Afs2Archive.Read(ExtAfs2Stream);
                                 }
                             }
-
-                            AwbHash = Afs2Archive.SubKey;
                         }
+
+                        if (Afs2Archive.SubKey != 0)
+                            AwbHash = Afs2Archive.SubKey;
                     }
 
                     if (AwbHash == 0)
