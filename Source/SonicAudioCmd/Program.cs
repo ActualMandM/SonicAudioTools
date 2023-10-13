@@ -1,19 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.IO.Compression;
-
-using SonicAudioLib;
-using SonicAudioLib.Archives;
-using SonicAudioLib.IO;
-using SonicAudioLib.CriMw;
-using System.Threading.Tasks;
-
-using System.Xml;
-using System.Xml.Serialization;
+﻿using SonicAudioLib.CriMw;
 
 namespace SonicAudioCmd
 {
@@ -21,6 +6,14 @@ namespace SonicAudioCmd
     {
         static void Main(string[] args)
         {
+            for (int i = 0; i < args.Length; i++)
+            {
+                CriTable criTable = new CriTable();
+                criTable.Load(args[i]);
+                criTable.Rows[0]["AcbVolume"] = 0.4f;
+                criTable.WriterSettings = CriTableWriterSettings.Adx2Settings;
+                criTable.Save(args[i]);
+            }
         }
     }
 }
