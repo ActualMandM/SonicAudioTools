@@ -16,7 +16,7 @@ namespace SonicAudioCmd
         {
             if (args.Length < 2)
             {
-                Console.WriteLine("Usage: SonicAudioCmd AcbFolder KeyCode");
+                Console.WriteLine($"Usage: {System.Diagnostics.Process.GetCurrentProcess().ProcessName} AcbFolder KeyCode");
                 return;
             }
 
