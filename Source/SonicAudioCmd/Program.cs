@@ -17,13 +17,13 @@ namespace SonicAudioCmd
                 return;
             }
 
-            string FilePath = args[0];
+            string AcbFolder = args[0];
             ulong KeyCode = ulong.Parse(args[1]);
 
-            string[] FileList = Directory.GetFiles(FilePath);
-            string OutputPath = Path.Combine(FilePath, "StreamTool");
+            string[] AcbList = Directory.GetFiles(AcbFolder);
+            string OutputPath = Path.Combine(AcbFolder, "StreamTool");
 
-            foreach (string AcbFile in FileList)
+            foreach (string AcbFile in AcbList)
             {
                 if (Path.GetExtension(AcbFile) == ".acb")
                 {
@@ -51,18 +51,18 @@ namespace SonicAudioCmd
                         {
                             using (SubStream ExtAfs2Stream = AcbReader.GetSubStream("StreamAwbAfs2Header"))
                             {
-                                bool utfMode = DataStream.ReadCString(ExtAfs2Stream, 4) == "@UTF";
+                                bool UtfMode = DataStream.ReadCString(ExtAfs2Stream, 4) == "@UTF";
                                 ExtAfs2Stream.Seek(0, SeekOrigin.Begin);
 
-                                if (utfMode)
+                                if (UtfMode)
                                 {
-                                    using (CriTableReader utfAfs2HeaderReader = CriTableReader.Create(ExtAfs2Stream))
+                                    using (CriTableReader UtfAfs2HeaderReader = CriTableReader.Create(ExtAfs2Stream))
                                     {
-                                        utfAfs2HeaderReader.Read();
+                                        UtfAfs2HeaderReader.Read();
 
-                                        using (SubStream extAfs2HeaderStream = utfAfs2HeaderReader.GetSubStream("Header"))
+                                        using (SubStream ExtAfs2HeaderStream = UtfAfs2HeaderReader.GetSubStream("Header"))
                                         {
-                                            Afs2Archive.Read(extAfs2HeaderStream);
+                                            Afs2Archive.Read(ExtAfs2HeaderStream);
                                         }
                                     }
                                 }
@@ -98,13 +98,13 @@ namespace SonicAudioCmd
             }
         }
 
-        static bool CheckIfAfs2(Stream source)
+        static bool CheckIfAfs2(Stream Source)
         {
-            long oldPosition = source.Position;
-            bool result = DataStream.ReadCString(source, 4) == "AFS2";
-            source.Seek(oldPosition, SeekOrigin.Begin);
+            long OldPosition = Source.Position;
+            bool Result = DataStream.ReadCString(Source, 4) == "AFS2";
+            Source.Seek(OldPosition, SeekOrigin.Begin);
 
-            return result;
+            return Result;
         }
     }
 }
