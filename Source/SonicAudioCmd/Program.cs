@@ -21,7 +21,7 @@ namespace SonicAudioCmd
             ulong KeyCode = ulong.Parse(args[1]);
 
             string[] AcbList = Directory.GetFiles(AcbFolder);
-            string OutputPath = Path.Combine(AcbFolder, "StreamTool");
+            string OutputPath = Path.Combine(AcbFolder, "LoopingAudioConverter");
 
             foreach (string AcbFile in AcbList)
             {
@@ -85,15 +85,78 @@ namespace SonicAudioCmd
                     if (!Directory.Exists(OutputPath))
                         Directory.CreateDirectory(OutputPath);
 
-                    string STData = "@echo off\r\n" +
-                        "cd /d \"%~dp0\"\r\n" +
-                        "cd ..\r\n" +
-                        "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
-                        "move \"%~n1.wav\" \".\"\r\n" +
-                        "vgaudio --hcaquality High --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
-                        "del \"%~n1.wav\"";
+                    string LACData = "<?xml version=\"1.0\"?>\r\n" +
+                        "<Options xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n" +
+                        "  <OutputDir>./output</OutputDir>\r\n" +
+                        "  <InputDir />\r\n" +
+                        "  <Channels xsi:nil=\"true\" />\r\n" +
+                        "  <SampleRate xsi:nil=\"true\" />\r\n" +
+                        "  <AmplifydB xsi:nil=\"true\" />\r\n" +
+                        "  <AmplifyRatio xsi:nil=\"true\" />\r\n" +
+                        "  <PitchSemitones xsi:nil=\"true\" />\r\n" +
+                        "  <TempoRatio xsi:nil=\"true\" />\r\n" +
+                        "  <DefaultInputDuration />\r\n" +
+                        "  <ChannelSplit>Pairs</ChannelSplit>\r\n" +
+                        "  <ExporterType>VGAudio_HCA</ExporterType>\r\n" +
+                        "  <AACEncodingParameters />\r\n" +
+                        "  <OggVorbisEncodingParameters />\r\n" +
+                        "  <MP3FFmpegParameters />\r\n" +
+                        "  <AACFFmpegParameters />\r\n" +
+                        "  <AdxOptions>\r\n" +
+                        "    <TrimFile>true</TrimFile>\r\n" +
+                        "    <Version>4</Version>\r\n" +
+                        "    <FrameSize>18</FrameSize>\r\n" +
+                        "    <Filter>2</Filter>\r\n" +
+                        "    <Type>Linear</Type>\r\n" +
+                        "    <EncryptionType>KeyCode</EncryptionType>\r\n" +
+                        "    <KeyCode>" + KeyCode + "</KeyCode>\r\n" +
+                        "  </AdxOptions>\r\n" +
+                        "  <HcaOptions>\r\n" +
+                        "    <TrimFile>true</TrimFile>\r\n" +
+                        "    <Quality>Highest</Quality>\r\n" +
+                        "    <LimitBitrate>false</LimitBitrate>\r\n" +
+                        "    <Bitrate>0</Bitrate>\r\n" +
+                        "    <KeyCode>" + AcbKey + "</KeyCode>\r\n" +
+                        "  </HcaOptions>\r\n" +
+                        "  <BxstmOptions>\r\n" +
+                        "    <TrimFile>true</TrimFile>\r\n" +
+                        "    <RecalculateSeekTable>true</RecalculateSeekTable>\r\n" +
+                        "    <RecalculateLoopContext>true</RecalculateLoopContext>\r\n" +
+                        "    <SamplesPerInterleave>14336</SamplesPerInterleave>\r\n" +
+                        "    <SamplesPerSeekTableEntry>14336</SamplesPerSeekTableEntry>\r\n" +
+                        "    <LoopPointAlignment>14336</LoopPointAlignment>\r\n" +
+                        "    <Codec>GcAdpcm</Codec>\r\n" +
+                        "    <Endianness xsi:nil=\"true\" />\r\n" +
+                        "    <Version>\r\n" +
+                        "      <UseDefault>true</UseDefault>\r\n" +
+                        "      <Major>0</Major>\r\n" +
+                        "      <Minor>0</Minor>\r\n" +
+                        "      <Micro>0</Micro>\r\n" +
+                        "      <Revision>0</Revision>\r\n" +
+                        "    </Version>\r\n" +
+                        "    <TrackType>Standard</TrackType>\r\n" +
+                        "    <SeekTableType>Standard</SeekTableType>\r\n" +
+                        "  </BxstmOptions>\r\n" +
+                        "  <WaveEncoding>PCM8</WaveEncoding>\r\n" +
+                        "  <InputLoopBehavior>NoChange</InputLoopBehavior>\r\n" +
+                        "  <ExportWholeSong>true</ExportWholeSong>\r\n" +
+                        "  <WholeSongExportByDesiredDuration>false</WholeSongExportByDesiredDuration>\r\n" +
+                        "  <WholeSongSuffix />\r\n" +
+                        "  <NumberOfLoops>1</NumberOfLoops>\r\n" +
+                        "  <DesiredDuration>900</DesiredDuration>\r\n" +
+                        "  <FadeOutSec>0</FadeOutSec>\r\n" +
+                        "  <ExportPreLoop>false</ExportPreLoop>\r\n" +
+                        "  <PreLoopSuffix> (beginning)</PreLoopSuffix>\r\n" +
+                        "  <ExportLoop>false</ExportLoop>\r\n" +
+                        "  <LoopSuffix> (loop)</LoopSuffix>\r\n" +
+                        "  <ExportPostLoop>false</ExportPostLoop>\r\n" +
+                        "  <PostLoopSuffix> (end)</PostLoopSuffix>\r\n" +
+                        "  <ExportLastLap>false</ExportLastLap>\r\n" +
+                        "  <LastLapSuffix> (final lap)</LastLapSuffix>\r\n" +
+                        "  <BypassEncoding>false</BypassEncoding>\r\n" +
+                        "</Options>";
 
-                    File.WriteAllText(Path.Combine(OutputPath, AcbName + ".bat"), STData);
+                    File.WriteAllText(Path.Combine(OutputPath, AcbName + ".xml"), LACData);
                 }
             }
         }
