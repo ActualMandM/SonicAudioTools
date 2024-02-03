@@ -14,6 +14,8 @@ namespace SonicAudioCmd
         static string OutputPath = string.Empty;
         static ulong KeyCode = 0;
 
+        static StringBuilder KeyData = new StringBuilder();
+
         static void Main(string[] args)
         {
             if (args.Length < 2)
@@ -29,6 +31,8 @@ namespace SonicAudioCmd
                 BasePath = args[0];
                 OutputPath = args[0];
                 SearchDirectories(args[0]);
+
+                File.WriteAllText(BasePath + "_keys.txt", KeyData.ToString());
             }
             else
             {
@@ -55,7 +59,6 @@ namespace SonicAudioCmd
         {
             if (Path.GetExtension(filePath) == ".acb")
             {
-                string AcbName = Path.GetFileNameWithoutExtension(filePath);
                 ushort AwbHash = 0;
 
                 using (CriTableReader AcbReader = CriTableReader.Create(filePath))
@@ -110,21 +113,7 @@ namespace SonicAudioCmd
 
                 ulong AcbKey = KeyCode * (((ulong)AwbHash << 16) | (ushort)(~AwbHash + 2));
 
-                if (!Directory.Exists(OutputPath))
-                    Directory.CreateDirectory(OutputPath);
-
-                string PathFromBase = filePath.Substring(BasePath.Length);
-                int SubDirCount = PathFromBase.Split('\\').Length - 1;
-
-                string STData = "@echo off\r\n" +
-                    "cd /d \"%~dp0\"\r\n" +
-                    new StringBuilder().Insert(0, "cd ..\r\n", SubDirCount) +
-                    "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
-                    "move \"%~n1.wav\" \".\"\r\n" +
-                    "vgaudio --hcaquality High --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
-                    "del \"%~n1.wav\"";
-
-                File.WriteAllText(Path.Combine(OutputPath, AcbName + ".bat"), STData);
+                KeyData.AppendLine($"{filePath}: {AcbKey}");
             }
         }
 
