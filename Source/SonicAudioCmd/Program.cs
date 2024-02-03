@@ -121,7 +121,7 @@ namespace SonicAudioCmd
                     new StringBuilder().Insert(0, "cd ..\r\n", SubDirCount) +
                     "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
                     "move \"%~n1.wav\" \".\"\r\n" +
-                    "vgaudio --hcaquality High --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
+                    "vgaudio --hcaquality Highest --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
                     "del \"%~n1.wav\"";
 
                 File.WriteAllText(Path.Combine(OutputPath, AcbName + ".bat"), STData);
