@@ -114,11 +114,11 @@ namespace SonicAudioCmd
                     Directory.CreateDirectory(OutputPath);
 
                 string PathFromBase = filePath.Substring(BasePath.Length);
-                int SubDirCount = PathFromBase.Split('\\').Length - 1;
+                int SubDirCount = PathFromBase.Split('\\').Length - 2;
 
                 string STData = "@echo off\r\n" +
                     "cd /d \"%~dp0\"\r\n" +
-                    new StringBuilder().Insert(0, "cd ..\r\n", SubDirCount) +
+                    "cd .." + new StringBuilder().Insert(0, "\\..", SubDirCount) +
                     "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
                     "move \"%~n1.wav\" \".\"\r\n" +
                     "vgaudio --hcaquality Highest --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
