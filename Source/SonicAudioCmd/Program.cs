@@ -118,7 +118,7 @@ namespace SonicAudioCmd
 
                 string STData = "@echo off\r\n" +
                     "cd /d \"%~dp0\"\r\n" +
-                    "cd .." + new StringBuilder().Insert(0, "\\..", SubDirCount) +
+                    $"cd ..{new StringBuilder().Insert(0, "\\..", SubDirCount)}\n" +
                     "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
                     "move \"%~n1.wav\" \".\"\r\n" +
                     "vgaudio --hcaquality Highest --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
