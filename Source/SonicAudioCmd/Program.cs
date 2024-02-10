@@ -28,6 +28,7 @@ namespace SonicAudioCmd
             {
                 BasePath = args[0];
                 OutputPath = args[0];
+                GenerateFile($"{args[0]}\\#KeyCode", KeyCode);
                 SearchDirectories(args[0]);
             }
             else
@@ -41,7 +42,7 @@ namespace SonicAudioCmd
         {
             foreach (string file in Directory.GetFiles(path))
             {
-                GenerateFile(file);
+                GetAwbHash(file);
             }
 
             foreach (string folder in Directory.GetDirectories(path))
@@ -51,11 +52,10 @@ namespace SonicAudioCmd
             }
         }
 
-        static void GenerateFile(string filePath)
+        static void GetAwbHash(string filePath)
         {
             if (Path.GetExtension(filePath) == ".acb")
             {
-                string AcbName = Path.GetFileNameWithoutExtension(filePath);
                 ushort AwbHash = 0;
 
                 using (CriTableReader AcbReader = CriTableReader.Create(filePath))
@@ -107,32 +107,37 @@ namespace SonicAudioCmd
 
                 if (AwbHash == 0)
                     return;
-
                 ulong AcbKey = KeyCode * (((ulong)AwbHash << 16) | (ushort)(~AwbHash + 2));
-
-                if (!Directory.Exists(OutputPath))
-                    Directory.CreateDirectory(OutputPath);
-
-                string PathFromBase = filePath.Substring(BasePath.Length);
-                int SubDirCount = PathFromBase.Split('\\').Length - 2;
-
-                string STData = "@echo off\r\n" +
-                    "cd /d \"%~dp0\"\r\n" +
-                    $"cd ..{new StringBuilder().Insert(0, "\\..", SubDirCount)}\n" +
-                    "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
-                    "move \"%~n1.wav\" \".\"\r\n" +
-                    "vgaudio --hcaquality Highest --keycode " + AcbKey + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
-                    "del \"%~n1.wav\"";
-
-                File.WriteAllText(Path.Combine(OutputPath, AcbName + ".bat"), STData);
+                GenerateFile(filePath, AcbKey);
             }
         }
 
-        static bool CheckIfAfs2(Stream Source)
+        static void GenerateFile(string filePath, ulong keyCode)
         {
-            long OldPosition = Source.Position;
-            bool Result = DataStream.ReadCString(Source, 4) == "AFS2";
-            Source.Seek(OldPosition, SeekOrigin.Begin);
+            if (!Directory.Exists(OutputPath))
+                Directory.CreateDirectory(OutputPath);
+
+            string AcbName = Path.GetFileNameWithoutExtension(filePath);
+
+            string PathFromBase = filePath.Substring(BasePath.Length);
+            int SubDirCount = PathFromBase.Split('\\').Length - 2;
+
+            string STData = "@echo off\r\n" +
+                "cd /d \"%~dp0\"\r\n" +
+                $"cd ..{new StringBuilder().Insert(0, "\\..", SubDirCount)}\n" +
+                "vgmstream -l 1 -f 0 -L -o \"%~n1.wav\" \"%~1\"\r\n" +
+                "move \"%~n1.wav\" \".\"\r\n" +
+                "vgaudio --hcaquality Highest --keycode " + keyCode + " \"%~n1.wav\" \"%~n1.hca\"\r\n" +
+                "del \"%~n1.wav\"";
+
+            File.WriteAllText(Path.Combine(OutputPath, AcbName + ".bat"), STData);
+        }
+
+        static bool CheckIfAfs2(Stream source)
+        {
+            long OldPosition = source.Position;
+            bool Result = DataStream.ReadCString(source, 4) == "AFS2";
+            source.Seek(OldPosition, SeekOrigin.Begin);
 
             return Result;
         }
